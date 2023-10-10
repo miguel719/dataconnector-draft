@@ -1,27 +1,55 @@
-import {LitElement, html, css} from 'lit';
+/*
+- Add config constructor
+- Add states, get state and set state
+- Update events for state changes
+- Update event for api call
+- Documents and upload
+*/
 
-export class DataConnector extends LitElement {
+export class DataConnector {
   constructor() {
-    super();
-    this.endpoints = {};
-    this.config = {};
-    this.responseData = {};
+    this.config = { ...this.initConfig() };
+    this.endpoints = { ...this.initEndpoints() };
+    this.states = { ...this.initStates() };
     this.defaultHeaders = {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
   }
+  initEndpoints() {
+    return {};
+  }
 
-  // CONFIG METHOS
+  // STATES
+  initStates() {
+    return {};
+  }
+
+  setStates(newStates) {
+    this.states = { ...this.states, ...newStates };
+    return $this.states;
+  }
+
+  getStates() {
+    return { ...this.states };
+  }
+
+  // CONFIG METHODS
+  initConfig() {
+    return {};
+  }
+
   setConfig(newConfig) {
+    console.log("set config");
     for (const [key, value] of Object.entries(newConfig)) {
       if (this.config.hasOwnProperty(key)) {
         this.config[key] = value;
       }
     }
+    this.endpoints = this.initEndpoints();
   }
 
   getConfig() {
-    return this.config;
+    return { ...this.config };
   }
 
   // APICALL HANDLER
@@ -32,8 +60,6 @@ export class DataConnector extends LitElement {
     }
 
     const endpointConfig = this.endpoints[endpointKey];
-    // const headers = this.getHeaders();
-
     let url = endpointConfig.url;
 
     // Replace URL placeholders with actual values from queryParams
@@ -42,7 +68,7 @@ export class DataConnector extends LitElement {
     }
 
     // Append query parameters for GET requests
-    if (endpointConfig.method === 'GET' && Object.keys(queryParams).length) {
+    if (endpointConfig.method === "GET" && Object.keys(queryParams).length) {
       const queryString = new URLSearchParams(queryParams).toString();
       url += `?${queryString}`;
     }
@@ -53,19 +79,13 @@ export class DataConnector extends LitElement {
         ? endpointConfig.headers
         : this.getDefaultHeaders(),
       body:
-        body && endpointConfig.method !== 'GET' ? JSON.stringify(body) : null,
+        body && endpointConfig.method !== "GET" ? JSON.stringify(body) : null,
     });
 
     const data = await response.json();
-    this.processDataForUI(data, endpointKey);
 
-    const event = {
-      bubbles: true,
-      cancelable: true,
-      detail: {data, url},
-    };
-    this.dispatchEvent(new CustomEvent('api-response', event));
-    this.dispatchEvent(new CustomEvent(endpointKey + '-response', event));
+    // Emit events to connected web components
+    this.emitEvent(endpointKey + "_res", { data, url });
 
     return data;
   }
@@ -74,13 +94,13 @@ export class DataConnector extends LitElement {
     return this.defaultHeaders;
   }
 
-  processDataForUI(data, endpointKey) {
-    this.responseData[endpointKey] = data;
-    this.requestUpdate();
-  }
-
-  // RENDER SLOT
-  render() {
-    return html` <slot .data=${this.responseData}></slot> `;
+  // EMIT CUSTOM EVENTS
+  emitEvent(eventName, detail) {
+    const event = new CustomEvent(eventName, {
+      bubbles: true,
+      cancelable: true,
+      detail: detail,
+    });
+    document.dispatchEvent(event);
   }
 }

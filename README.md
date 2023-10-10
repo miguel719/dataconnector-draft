@@ -7,116 +7,133 @@ npm install
 npm start
 ```
 
-## Creating new Data Connector
+## Data Connector
 
-This a basic general example of DataConnector
+The DataConnector is a flexible and extensible class designed to facilitate API interactions and manage states. It provides a structured way to define API endpoints, handle API calls, and emit events to connected web components. To start a new connector you can extend the DataConnector class and use some of the defined methods to create configurations, endpoints and states:
 
 ```javascript
-export class TodoAPIConnector extends DataConnector {
-  // CONFIGURATIION: You can add any configurations props here
-  config = {
-    API_URL: 'http://localhost:3005', // Base URL for the Todo API
-    JWT: 'initial_token', // JWT token for authentication
-  };
-
-  // ENDPOINTS: this endpoint will be available to consume from methods
-  endpoints = {
-    createTask: {method: 'POST', url: this.config.API_URL + '/tasks'},
-    getAllTasks: {method: 'GET', url: this.config.API_URL + '/tasks'},
-  };
-
-  // PROPERTIES: Lit reactive properties can be used to store data and propagate
-  static properties = {
-    tasks: {type: Array},
-  };
-
-  constructor() {
-    super();
-    this.tasks = [];
-  }
-
-  // METHODS: You can establish methods accesible to other component
-  async fetchAllTasks() {
-    this.tasks = await this.apiCall('getAllTasks');
-  }
-
-  async createTask(taskData) {
-    await this.apiCall('createTask', taskData);
-    this.fetchAllTasks();
-  }
-
-  // RENDER: Here you can pass data or methods to the childrens
-  render() {
-    return html`
-      <h1>Todo App</h1>
-      <todo-input .createTask=${this.createTask.bind(this)}></todo-input>
-      <todo-list .tasks=${this.tasks}></todo-list>
-    `;
-  }
-}
-
-customElements.define('dc-todo-api', TodoAPIConnector);
+class TodoAPIConnector extends DataConnector {
+  ...
 ```
 
-## Consume from components
+### Configuration (Config)
 
-From a webcomponent you can receive the methods and the data as properties and consume it directly:
+The initConfig method is intended for initial configurations. It can contain default values but can be overridden when needed.
 
 ```javascript
-export class TodoInput extends LitElement {
-  static properties = {
-    createTask: {type: Function},
+initConfig() {
+  return {
+    API_URL: "http://default-api-url.com",
+    JWT_TOKEN: 'TOKEN',
+    ...etc
   };
+}
+```
 
-  async handleButtonClick() {
-      await this.createTask({task: "Test Taks"});
+### Endpoints
+
+Define the API endpoints using the initEndpoints method. You can use configuration values associated with an API URL and HTTP method.
+javascript. Notice the {id} in the URL? This is a placeholder. When you call apiCall, you can provide values for these placeholders using the queryParams argument
+
+```javascript
+initEndpoints() {
+  return {
+    get_users: { method: "GET", url: `${this.config.API_URL}/data` },
+    get_data_by_id: { method: "GET", url: `${this.config.API_URL}/data/{id}` },
+    post_data: { method: "POST", url: `${this.config.API_URL}/data` },
+  };
+}
+```
+
+### API Call Handler
+
+The apiCall method is your primary tool for interacting with APIs, is designed to make asynchronous requests to your API. It abstracts away the complexities of setting up fetch requests
+
+To use apiCall, you'll typically call it with an endpointKey (which corresponds to a specific API endpoint you've defined) and, if needed, additional data or parameters.
+
+```javascript
+dataConnector.apiCall("get_user", null, { id: 123 });
+```
+
+For each API call made using a defined endpoint, an automatic event is generated. This allows you to listen for specific API responses in other parts of your application, the even will be
+
+### States
+
+DataConnector provides a simple state management system. You can define default states in the initStates method. These states can be anything relevant to your application, like a list of items, user data, etc.
+
+```javascript
+initStates() {
+  return {
+    users: [],
+    // ... other states
+  };
+}
+```
+
+You can then update these states using the setStates({user:[]}) method and retrieve them using getStates()
+
+### Methods
+
+While apiCall handles most general use cases, you might have specific needs, like preprocessing data before making a request or handling responses in a particular way. Since you're extending the class, you can add additional methods on the class.
+
+```javascript
+async getUser(id, updatedData) {
+  const users = await this.apiCall("get_users", updatedData, { id });
+  this.setState({users});
+}
+
+filterUsersByName(name) {
+    const allUsers = this.getState().users;
+    const filteredUsers = allUsers.filter(user => user.name === name);
+    this.setStates({ users: filteredUsers });
+}
+```
+
+### Use on webcomponents
+
+To use this connector, you instantiate it, also you can user setConfig method allows you to override or extend the default configuration of the connector. This is particularly useful if you have environment-specific configurations or if you need to update configurations dynamically.
+
+```javascript
+const userAPI = new UserAPIConnector();
+This creates an instance of UserAPIConnector with the default configurations, endpoints, and states defined in the initConfig, initEndpoints, and initStates methods respectively.
+
+userAPI.setConfig({
+  API_URL: "http://new-api-url.com",
+});
+```
+
+You can use the methods and events to connect the functionality on a webcomponent:
+
+```javascript
+import userAPI from './UserAPIConnector.js';
+
+export class UserList extends LitElement {
+  ...
+  connectedCallback() {
+    super.connectedCallback();
+    document.addEventListener('get_users_res', (e) => {
+      this.users = e.detail.data;
+    });
+    userAPI.apiCall('get_users');
+  }
+
+  async handleAddUser() {
+      await userAPI.apiCall('add_user', { name: this.newUser });
+      userAPI.apiCall('get_users'); // Refresh the user list
     }
   }
 
   render() {
     return html`
-      <div class="container">
-        <button @click=${this.handleButtonClick}>Add Task</button>
+      <ul class="user-list">
+        ${this.users.map(user => html`<li>${user.name}</li>`)}
+      </ul>
+      <div class="add-user">
+        <input type="text" .value=${this.newUser} @input=${this.handleInputChange} placeholder="Add user" />
+        <button @click=${this.handleAddUser}>Add</button>
       </div>
     `;
   }
 }
-```
 
-## Consume directly from JS
-
-```html
-<dc-todo-api id="todoConnector">
-  <dc-todo-api>
-    <script>
-      // You can establish listener for general api response or for specific endpoint
-      document.addEventListener('api-response', (event) => {
-        console.log('API response received for endpoint:', event.deatil);
-      });
-
-      document.addEventListener('createTask-response', (event) => {
-        console.log('API from createTask Data:', event.detail.data);
-      });
-
-      // You can iteract with the TODO api connector when it's loaded
-      document.addEventListener('DOMContentLoaded', () => {
-        const todoConnector = document.getElementById('todoConnector');
-
-        // SET CONFIGS
-        console.log(todoConnector.getConfig());
-        todoConnector.setConfig({
-          API_URL: 'http://localhost:3005',
-          JWT: 'jwt_update',
-        });
-        console.log(todoConnector.getConfig());
-
-        // CALL API CALL OR METHOD
-        todoConnector.apiCall('createTask', {
-          task: 'New Task',
-          status: 'pending',
-        });
-      });
-    </script></dc-todo-api
-  ></dc-todo-api
->
 ```

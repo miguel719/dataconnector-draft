@@ -1,4 +1,5 @@
-import {LitElement, html, css} from 'lit';
+import { LitElement, html, css } from "lit";
+import todoAPI from "./TodoAPIConnector";
 
 export class TodoList extends LitElement {
   static styles = css`
@@ -34,10 +35,9 @@ export class TodoList extends LitElement {
       background-color: #c82333;
     }
   `;
+
   static properties = {
-    tasks: {type: Array},
-    updateTask: {type: Function},
-    deleteTask: {type: Function},
+    tasks: { type: Array },
   };
 
   constructor() {
@@ -45,17 +45,27 @@ export class TodoList extends LitElement {
     this.tasks = []; // Default value
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    document.addEventListener("get_tasks_res", (e) => {
+      this.tasks = e.detail.data;
+    });
+    console.log(todoAPI);
+    todoAPI.fetchAllTasks();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener("get_tasks_res");
+  }
+
   handleTaskCompletion(task) {
-    const updatedStatus = task.status === 'completed' ? 'pending' : 'completed';
-    if (this.updateTask) {
-      this.updateTask(task._id, {status: updatedStatus});
-    }
+    const updatedStatus = task.status === "completed" ? "pending" : "completed";
+    todoAPI.updateTask(task._id, { status: updatedStatus });
   }
 
   handleTaskDeletion(taskId) {
-    if (this.deleteTask) {
-      this.deleteTask(taskId);
-    }
+    todoAPI.deleteTask(taskId);
   }
 
   render() {
@@ -66,10 +76,10 @@ export class TodoList extends LitElement {
             <li class="task">
               <input
                 type="checkbox"
-                .checked=${task.status === 'completed'}
+                .checked=${task.status === "completed"}
                 @change=${() => this.handleTaskCompletion(task)}
               />
-              <span class=${task.status === 'completed' ? 'completed' : ''}>
+              <span class=${task.status === "completed" ? "completed" : ""}>
                 ${task.task}
               </span>
               <button @click=${() => this.handleTaskDeletion(task._id)}>
@@ -83,4 +93,4 @@ export class TodoList extends LitElement {
   }
 }
 
-customElements.define('todo-list', TodoList);
+customElements.define("todo-list", TodoList);

@@ -1,4 +1,5 @@
-import {LitElement, html, css} from 'lit';
+import { LitElement, html, css } from "lit";
+import todoAPI from "./TodoAPIConnector";
 
 export class TodoInput extends LitElement {
   static styles = css`
@@ -10,7 +11,7 @@ export class TodoInput extends LitElement {
       align-items: center;
     }
 
-    input[type='text'] {
+    input[type="text"] {
       flex: 1;
       padding: 8px;
       border: 1px solid #ccc;
@@ -31,14 +32,14 @@ export class TodoInput extends LitElement {
       background-color: #0056b3;
     }
   `;
+
   static properties = {
-    taskName: {type: String},
-    createTask: {type: Function},
+    taskName: { type: String },
   };
 
   constructor() {
     super();
-    this.taskName = '';
+    this.taskName = "";
   }
 
   handleInputChange(event) {
@@ -46,13 +47,9 @@ export class TodoInput extends LitElement {
   }
 
   async handleButtonClick() {
-    if (this.taskName.trim() === '') return;
-
-    // Use the passed createTask method
-    if (this.createTask) {
-      await this.createTask({task: this.taskName});
-      this.taskName = ''; // Clear the input after adding the task
-    }
+    if (this.taskName.trim() === "") return;
+    await todoAPI.createTask({ task: this.taskName });
+    this.taskName = ""; // Clear the input after adding the task
   }
 
   render() {
@@ -70,4 +67,4 @@ export class TodoInput extends LitElement {
   }
 }
 
-customElements.define('todo-input', TodoInput);
+customElements.define("todo-input", TodoInput);
