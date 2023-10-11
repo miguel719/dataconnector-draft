@@ -26,27 +26,38 @@ class TodoAPIConnector extends DataConnector {
   }
 
   // STATES
-  initStates() {
+  stateEvent = "state_update"; // optional to trigger event on state change
+  initState() {
     return {
       tasks: [],
+      test: { default: "test1", type: String },
     };
   }
 
   // METHODS
   async fetchAllTasks() {
-    this.tasks = await this.apiCall("get_tasks");
+    const tasks = await this.apiCall("get_tasks");
+    this.setState({ tasks, test: "[1]" });
   }
 
   async createTask(taskData) {
     await this.apiCall("create_task", taskData);
+    await this.fetchAllTasks();
   }
 
   async updateTask(taskId, updatedData) {
     await this.apiCall("update_task", updatedData, { id: taskId });
+    await this.fetchAllTasks();
   }
 
   async deleteTask(taskId) {
     await this.apiCall("delete_task", null, { id: taskId });
+    await this.fetchAllTasks();
+  }
+
+  errorHandler(error) {
+    super.errorHandler(error);
+    // logic to handle error
   }
 }
 

@@ -47,16 +47,22 @@ export class TodoList extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+
     document.addEventListener("get_tasks_res", (e) => {
       this.tasks = e.detail.data;
     });
-    console.log(todoAPI);
+
+    document.addEventListener("state_update", (e) => {
+      console.log(e.detail);
+    });
+
     todoAPI.fetchAllTasks();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener("get_tasks_res");
+    document.removeEventListener("state_update");
   }
 
   handleTaskCompletion(task) {

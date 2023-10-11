@@ -23,8 +23,8 @@ The initConfig method is intended for initial configurations. It can contain def
 ```javascript
 initConfig() {
   return {
-    API_URL: "http://default-api-url.com",
-    JWT_TOKEN: 'TOKEN',
+    API_URL: "http://default-api-url.com", // You can set directly the default value
+    JWT_TOKEN: {default: 'TOKEN', type: String}, // Also can define along the type
     ...etc
   };
 }
@@ -45,6 +45,12 @@ initEndpoints() {
 }
 ```
 
+You also can set the headers that are sent when an apiCall is run:
+
+```javascript
+this.setDefaultHeaders({ Authorization: "my-token" });
+```
+
 ### API Call Handler
 
 The apiCall method is your primary tool for interacting with APIs, is designed to make asynchronous requests to your API. It abstracts away the complexities of setting up fetch requests
@@ -57,20 +63,39 @@ dataConnector.apiCall("get_user", null, { id: 123 });
 
 For each API call made using a defined endpoint, an automatic event is generated. This allows you to listen for specific API responses in other parts of your application, the even will be
 
-### States
+### State Handler
 
-DataConnector provides a simple state management system. You can define default states in the initStates method. These states can be anything relevant to your application, like a list of items, user data, etc.
+DataConnector provides a simple state management system. You can define default values in the initState method. These states can be anything relevant to your application, like a list of items, user data, etc.
 
 ```javascript
-initStates() {
+initState() {
   return {
-    users: [],
-    // ... other states
+    users: [], // You can set directly the default value
+    currentId: {default:'', type: String }// Also can define along the type
   };
 }
 ```
 
-You can then update these states using the setStates({user:[]}) method and retrieve them using getStates()
+You can then update these values using the setState({user:[]}) method and retrieve them using getState()
+
+#### State Event
+
+You can also configure an event emitter, so it trigger each time that an state is changed:
+
+```javascript
+class TodoAPIConnector extends DataConnector {
+    stateEvent = "state_update"; // by defining this it will generate a custome event with this name
+    initState() {
+      ....
+
+    // to get the event
+    document.addEventListener("state_update", (e) => {
+      console.log(e.detail);
+      const newState = e.detail.state; // this will return only the props that changed with it's new value
+      const prevState = e.detail.prevState; // this will return previous values
+    });
+
+```
 
 ### Methods
 
@@ -85,7 +110,7 @@ async getUser(id, updatedData) {
 filterUsersByName(name) {
     const allUsers = this.getState().users;
     const filteredUsers = allUsers.filter(user => user.name === name);
-    this.setStates({ users: filteredUsers });
+    this.setState({ users: filteredUsers });
 }
 ```
 
@@ -95,7 +120,7 @@ To use this connector, you instantiate it, also you can user setConfig method al
 
 ```javascript
 const userAPI = new UserAPIConnector();
-This creates an instance of UserAPIConnector with the default configurations, endpoints, and states defined in the initConfig, initEndpoints, and initStates methods respectively.
+This creates an instance of UserAPIConnector with the default configurations, endpoints, and states defined in the initConfig, initEndpoints, and initState methods respectively.
 
 userAPI.setConfig({
   API_URL: "http://new-api-url.com",
@@ -136,4 +161,27 @@ export class UserList extends LitElement {
   }
 }
 
+```
+
+### Error Handler
+
+The connector have a default error handler that log the errors, you can all to register the errors:
+
+```javascript
+  getUser() {
+    const users = await fetchUsers();
+    if(users.error) {
+      this.errorHandler(users.error);
+    }
+  }
+```
+
+also you can overide to handle the methods:
+
+```javascript
+  ...
+  errorHandler(error) {
+    super.errorHandler(error);
+    // logic to handle error
+  }
 ```

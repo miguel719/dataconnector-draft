@@ -1,36 +1,67 @@
 /*
-- Add config constructor
-- Add states, get state and set state
-- Update events for state changes
-- Update event for api call
-- Documents and upload
+TODO
+BASE
+- Add endpoints sample data and documentation
+
+UI
+- Allow display config and state as table editable
+- Allow display endpoints and make request and display response
 */
 
 export class DataConnector {
+  stateEvent = "";
   constructor() {
     this.config = { ...this.initConfig() };
     this.endpoints = { ...this.initEndpoints() };
-    this.states = { ...this.initStates() };
+    this.state = { ...this.getInitialState() };
     this.defaultHeaders = {
       "Content-Type": "application/json",
     };
   }
-  initEndpoints() {
+  initEndpoints(options = {}) {
     return {};
   }
 
-  // STATES
-  initStates() {
+  // STATE METHODS
+  initState() {
     return {};
   }
 
-  setStates(newStates) {
-    this.states = { ...this.states, ...newStates };
-    return $this.states;
+  setState(newState) {
+    try {
+      //Validate values
+      const inisitalState = this.initState();
+      for (const [key, value] of Object.entries(newState)) {
+        if (inisitalState[key] && inisitalState[key].type) {
+          validateType(value, inisitalState[key].type);
+        }
+      }
+
+      if (this.stateEvent) {
+        const changes = getDifferences(this.state, {
+          ...this.state,
+          ...newState,
+        });
+        this.emitEvent(this.stateEvent, changes);
+      }
+      this.state = { ...this.state, ...newState };
+      return this.state;
+    } catch (error) {
+      this.errorHandler(error);
+    }
   }
 
-  getStates() {
-    return { ...this.states };
+  getInitialState() {
+    const initialState = this.initState();
+    const realState = {};
+    for (const [key, value] of Object.entries(initialState)) {
+      realState[key] = value.default ? value.default : value;
+    }
+    return realState;
+  }
+
+  getState() {
+    return { ...this.state };
   }
 
   // CONFIG METHODS
@@ -39,7 +70,13 @@ export class DataConnector {
   }
 
   setConfig(newConfig) {
-    console.log("set config");
+    const initialConfig = this.initConfig();
+    for (const [key, value] of Object.entries(newConfig)) {
+      if (initialConfig[key] && initialConfig[key].type) {
+        validateType(value, initialConfig[key].type);
+      }
+    }
+
     for (const [key, value] of Object.entries(newConfig)) {
       if (this.config.hasOwnProperty(key)) {
         this.config[key] = value;
@@ -54,44 +91,53 @@ export class DataConnector {
 
   // APICALL HANDLER
   async apiCall(endpointKey, body = null, queryParams = {}) {
-    if (!this.endpoints[endpointKey]) {
-      console.error(`Endpoint ${endpointKey} not configured.`);
-      return;
+    try {
+      if (!this.endpoints[endpointKey]) {
+        console.error(`Endpoint ${endpointKey} not configured.`);
+        return;
+      }
+
+      const endpointConfig = this.endpoints[endpointKey];
+      let url = endpointConfig.url;
+
+      // Replace URL placeholders with actual values from queryParams
+      for (const [key, value] of Object.entries(queryParams)) {
+        url = url.replace(`{${key}}`, value);
+      }
+
+      // Append query parameters for GET requests
+      if (endpointConfig.method === "GET" && Object.keys(queryParams).length) {
+        const queryString = new URLSearchParams(queryParams).toString();
+        url += `?${queryString}`;
+      }
+
+      const response = await fetch(url, {
+        method: endpointConfig.method,
+        headers: endpointConfig.headers
+          ? endpointConfig.headers
+          : this.getDefaultHeaders(),
+        body:
+          body && endpointConfig.method !== "GET" ? JSON.stringify(body) : null,
+      });
+
+      const data = await response.json();
+
+      // Emit events to connected web components
+      this.emitEvent(endpointKey + "_res", { data, url });
+
+      return data;
+    } catch (error) {
+      this.errorHandler(error);
     }
-
-    const endpointConfig = this.endpoints[endpointKey];
-    let url = endpointConfig.url;
-
-    // Replace URL placeholders with actual values from queryParams
-    for (const [key, value] of Object.entries(queryParams)) {
-      url = url.replace(`{${key}}`, value);
-    }
-
-    // Append query parameters for GET requests
-    if (endpointConfig.method === "GET" && Object.keys(queryParams).length) {
-      const queryString = new URLSearchParams(queryParams).toString();
-      url += `?${queryString}`;
-    }
-
-    const response = await fetch(url, {
-      method: endpointConfig.method,
-      headers: endpointConfig.headers
-        ? endpointConfig.headers
-        : this.getDefaultHeaders(),
-      body:
-        body && endpointConfig.method !== "GET" ? JSON.stringify(body) : null,
-    });
-
-    const data = await response.json();
-
-    // Emit events to connected web components
-    this.emitEvent(endpointKey + "_res", { data, url });
-
-    return data;
   }
 
+  // HEADERS HANDLERS
   getDefaultHeaders() {
     return this.defaultHeaders;
+  }
+
+  setDefaultHeaders(newHeaders) {
+    this.defaultHeaders = { ...newHeaders };
   }
 
   // EMIT CUSTOM EVENTS
@@ -102,5 +148,51 @@ export class DataConnector {
       detail: detail,
     });
     document.dispatchEvent(event);
+  }
+
+  // ERROR HANDLERS
+  errorHandler(error) {
+    console.error("DataConnector error:", error);
+  }
+}
+
+// HELPERS
+function getDifferences(obj1, obj2) {
+  let prevState = {};
+  let state = {};
+
+  for (let key in obj1) {
+    if (!(key in obj2)) {
+      prevState[key] = obj1[key];
+      state[key] = undefined;
+    } else if (JSON.stringify(obj1[key]) !== JSON.stringify(obj2[key])) {
+      prevState[key] = obj1[key];
+      state[key] = obj2[key];
+    }
+  }
+
+  for (let key in obj2) {
+    if (!(key in obj1)) {
+      prevState[key] = undefined;
+      state[key] = obj2[key];
+    }
+  }
+
+  return { prevState, state };
+}
+
+function validateType(value, expectedType) {
+  if (expectedType === String && typeof value !== "string") {
+    throw new Error(`Expected type String, but received type ${typeof value}`);
+  } else if (expectedType === Number && typeof value !== "number") {
+    throw new Error(`Expected type Number, but received type ${typeof value}`);
+  } else if (expectedType === Boolean && typeof value !== "boolean") {
+    throw new Error(`Expected type Boolean, but received type ${typeof value}`);
+  } else if (expectedType === Array && !Array.isArray(value)) {
+    throw new Error(`Expected type Array, but received type ${typeof value}`);
+  } else if (typeof value === "object" && !(value instanceof expectedType)) {
+    throw new Error(
+      `Expected type ${expectedType.name}, but received type ${typeof value}`
+    );
   }
 }
