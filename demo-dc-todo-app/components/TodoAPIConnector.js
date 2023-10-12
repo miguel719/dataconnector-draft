@@ -1,4 +1,4 @@
-import { DataConnector } from "./DataConnector";
+import { DataConnector } from "data-connector";
 
 class TodoAPIConnector extends DataConnector {
   // CONFIGURATION

@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { DataConnector } from "./DataConnector";
 
-class ApiTester extends LitElement {
+export class ConnectorDisplay extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -137,4 +137,4 @@ class ApiTester extends LitElement {
   }
 }
 
-customElements.define("api-tester", ApiTester);
+customElements.define("connector-display", ConnectorDisplay);
