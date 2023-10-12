@@ -1,13 +1,3 @@
-/*
-TODO
-BASE
-- Add endpoints sample data and documentation
-
-UI
-- Allow display config and state as table editable
-- Allow display endpoints and make request and display response
-*/
-
 export class DataConnector {
   stateEvent = "";
   constructor() {

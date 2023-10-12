@@ -12,12 +12,17 @@ class TodoAPIConnector extends DataConnector {
   // ENDPOINTS
   initEndpoints() {
     return {
-      create_task: { method: "POST", url: this.config.API_URL + "/tasks" },
+      create_task: {
+        method: "POST",
+        url: this.config.API_URL + "/tasks",
+        sample_request_data: { task: "Shopping", status: "pending" },
+      },
+      get_tasks: { method: "GET", url: this.config.API_URL + "/tasks" },
       update_task: {
         method: "PUT",
         url: this.config.API_URL + "/tasks/{id}",
+        sample_request_data: { task: "Shopping", status: "pending" },
       },
-      get_tasks: { method: "GET", url: this.config.API_URL + "/tasks" },
       delete_task: {
         method: "DELETE",
         url: this.config.API_URL + "/tasks/{id}",
