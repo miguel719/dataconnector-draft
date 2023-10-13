@@ -1,2 +1,2 @@
-export { DataConnector } from "./DataConnector";
-export { ConnectorDisplay } from "./ConnectorDisplay";
+export { DataConnector } from "./dist/DataConnector";
+export { ConnectorDisplay } from "./dist/ConnectorDisplay";

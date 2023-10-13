@@ -17,13 +17,15 @@
   </head>
   <body>
     <todo-app> </todo-app>
-    <api-tester id="apiTester"></api-tester>
+    <connector-display id="apiTester"></connector-display>
 
     <script type="module">
-      import { ConnectorDisplay } from "data-connector";
       /*
+      import { ConnectorDisplay } from "data-connector";
+
       import todoAPI from "../components/TodoAPIConnector.js";
       document.addEventListener("DOMContentLoaded", (event) => {
+        console.log("listener");
         const apiTesterElement = document.getElementById("apiTester");
         const connector = todoAPI;
         apiTesterElement.connector = connector;

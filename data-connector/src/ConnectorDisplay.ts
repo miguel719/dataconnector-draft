@@ -1,8 +1,26 @@
-import { LitElement, html, css } from "lit";
+import {
+  LitElement,
+  html,
+  css,
+  CSSResult,
+  PropertyValues,
+  TemplateResult,
+} from "lit";
+
 import { DataConnector } from "./DataConnector";
 
+interface EndpointConfig {
+  method: string;
+  url: string;
+  sample_request_data?: unknown; // Define a more specific type if you know the structure of 'sample_request_data'
+}
+
+interface ResponseData {
+  [key: string]: unknown; // Define a more specific type if you know the structure of the response data
+}
+
 export class ConnectorDisplay extends LitElement {
-  static styles = css`
+  static styles: CSSResult = css`
     :host {
       display: block;
       margin: 30px;
@@ -37,18 +55,23 @@ export class ConnectorDisplay extends LitElement {
     }
   `;
 
-  static properties = {
-    connector: { type: Object },
-    responseData: { type: Object },
-  };
+  static get properties() {
+    return {
+      connector: { type: Object },
+      responseData: { type: Object },
+    };
+  }
+
+  connector: DataConnector;
+  responseData: ResponseData;
 
   constructor() {
     super();
-    this.connector = new DataConnector(); // Or you can set it from outside
+    this.connector = new DataConnector();
     this.responseData = {};
   }
 
-  renderEndpoint(key, config) {
+  renderEndpoint(key: string, config: EndpointConfig): TemplateResult {
     const sampleRequestData = config.sample_request_data
       ? JSON.stringify(config.sample_request_data, null, 2)
       : "";
@@ -95,21 +118,23 @@ export class ConnectorDisplay extends LitElement {
     `;
   }
 
-  async handleApiCall(key, config) {
+  async handleApiCall(key: string, config: EndpointConfig): Promise<void> {
     let body = null;
-    const queryParams = {};
+    const queryParams: Record<string, string> = {};
 
     if (config.method === "POST" || config.method === "PUT") {
-      const textarea = this.shadowRoot.getElementById(`${key}-body`);
+      const textarea = this.shadowRoot?.getElementById(
+        `${key}-body`
+      ) as HTMLTextAreaElement | null;
       body = textarea?.value ? JSON.parse(textarea.value) : null;
     }
 
     const urlPlaceholders = config.url.match(/{\w+}/g) || [];
     urlPlaceholders.forEach((placeholder) => {
       const placeholderKey = placeholder.replace(/[{}]/g, "");
-      const input = this.shadowRoot.querySelector(
+      const input = this.shadowRoot?.querySelector(
         `input[placeholder="${placeholder}"]`
-      );
+      ) as HTMLTextAreaElement | null;
       if (input && input.value) {
         queryParams[placeholderKey] = input.value;
       } else {
@@ -126,14 +151,22 @@ export class ConnectorDisplay extends LitElement {
     }
   }
 
-  render() {
-    const endpoints = this.connector.initEndpoints();
+  render(): TemplateResult {
+    const endpoints: Record<string, EndpointConfig> =
+      this.connector.initEndpoints();
 
     return html`
+      <p>Test</p>
       ${Object.keys(endpoints).map((key) =>
         this.renderEndpoint(key, endpoints[key])
       )}
     `;
+  }
+
+  protected willUpdate(_changedProperties: PropertyValues): void {
+    console.log("willUpdate");
+    console.log(_changedProperties);
+    super.willUpdate(_changedProperties);
   }
 }
 
