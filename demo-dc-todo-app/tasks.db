@@ -1,12 +1,5 @@
-{"date":"2023-10-06T19:14:36.928Z","task":"Code","status":"completed","_id":"2IoWKObFidh7SHBU"}
-{"date":"2023-10-06T19:14:39.657Z","task":"Eat","status":"pending","_id":"HeX2HD5K4TW5U3H5"}
-{"date":"2023-10-12T05:47:11.994Z","task":"Sleep","status":"pending","_id":"vYg9CQPpbopCP55W"}
-{"date":"2023-10-06T19:14:39.657Z","task":"Eat","status":"completed","_id":"HeX2HD5K4TW5U3H5"}
-{"date":"2023-10-06T19:14:39.657Z","task":"Eat","status":"pending","_id":"HeX2HD5K4TW5U3H5"}
-{"date":"2023-10-12T05:47:11.994Z","task":"Sleep","status":"completed","_id":"vYg9CQPpbopCP55W"}
-{"date":"2023-10-12T05:47:11.994Z","task":"Sleep","status":"pending","_id":"vYg9CQPpbopCP55W"}
-{"date":"2023-10-13T05:28:15.081Z","task":"sasa","status":"pending","_id":"vxPPlLv3rWmcwt70"}
 {"date":"2023-10-06T19:14:36.928Z","task":"Code","status":"pending","_id":"2IoWKObFidh7SHBU"}
-{"date":"2023-10-06T19:14:36.928Z","task":"Code","status":"completed","_id":"2IoWKObFidh7SHBU"}
-{"date":"2023-10-06T19:14:36.928Z","task":"Code","status":"pending","_id":"2IoWKObFidh7SHBU"}
-{"date":"2023-10-06T19:14:36.928Z","task":"Code","status":"completed","_id":"2IoWKObFidh7SHBU"}
+{"date":"2023-10-06T19:14:39.657Z","task":"Eat","status":"pending","_id":"HeX2HD5K4TW5U3H5"}
+{"date":"2023-10-18T05:38:17.521Z","task":"sasa","status":"pending","_id":"fJd3UpLw1qnHolay"}
+{"date":"2023-10-12T05:47:11.994Z","task":"Sleep","status":"pending","_id":"vYg9CQPpbopCP55W"}
+{"date":"2023-10-18T06:33:03.937Z","task":"Shopping","status":"pending","_id":"sW54vwwdMz177LKZ"}

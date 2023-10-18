@@ -4,14 +4,30 @@
   "description": "Data Connector",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "lit": "^3.0.0"
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fkill": "^8.1.1",
+    "kill-port": "^2.0.1",
+    "lit": "^3.0.0",
+    "nedb": "^1.8.0"
   },
   "devDependencies": {
+    "@types/body-parser": "^1.19.3",
+    "@types/cors": "^2.8.14",
+    "@types/express": "^4.17.19",
+    "@types/jest": "^29.5.5",
+    "@types/kill-port": "^2.0.1",
+    "@types/nedb": "^1.8.14",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^22.1.0",
+    "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
   }
 }

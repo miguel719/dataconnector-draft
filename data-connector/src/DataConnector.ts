@@ -82,11 +82,12 @@ export class DataConnector {
       });
 
       const data = await response.json();
+      const statusCode = response.status;
 
-      // Emit events to connected web components
-      this.emitEvent(endpointKey + "_res", { data, url });
+      // Emit custom event
+      this.emitEvent(endpointKey + "_res", { data, url, statusCode });
 
-      return data;
+      return { data, url, statusCode };
     } catch (error) {
       this.errorHandler(error);
     }
@@ -103,12 +104,14 @@ export class DataConnector {
 
   // EMIT CUSTOM EVENTS
   emitEvent(eventName: string, detail: any): void {
-    const event = new CustomEvent(eventName, {
-      bubbles: true,
-      cancelable: true,
-      detail: detail,
-    });
-    document.dispatchEvent(event);
+    if (typeof CustomEvent === "function") {
+      const event = new CustomEvent(eventName, {
+        bubbles: true,
+        cancelable: true,
+        detail: detail,
+      });
+      document.dispatchEvent(event);
+    }
   }
 
   // ERROR HANDLERS
