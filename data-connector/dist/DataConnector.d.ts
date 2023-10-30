@@ -1,9 +1,9 @@
-export interface EndpointConfig {
+interface EndpointConfig {
     url: string;
     method: string;
     headers?: HeadersInit;
 }
-export interface Config {
+interface Config {
     [key: string]: any;
 }
 export declare class DataConnector {
@@ -21,3 +21,4 @@ export declare class DataConnector {
     emitEvent(eventName: string, detail: any): void;
     errorHandler(error: any): void;
 }
+export {};

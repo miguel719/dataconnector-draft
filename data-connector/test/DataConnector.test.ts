@@ -1,13 +1,11 @@
 import { DataConnector } from "../src/DataConnector";
-import { ReflectionService } from "../src/ReflectionService";
 import { runServer, closeServer } from "./server-test";
 
 describe("DataConnector", () => {
   let dataConnector: DataConnector;
-  let reflectionService: ReflectionService;
 
   // Initial data connector class
-  class DataConnectorTest extends DataConnector {
+  class dataConnectorTest extends DataConnector {
     initConfig() {
       return {
         API_URL: "http://localhost:2000",
@@ -38,14 +36,13 @@ describe("DataConnector", () => {
 
   // Create a new instance of data connector
   beforeAll(async () => {
-    console.log("before all");
-    dataConnector = new DataConnectorTest();
-    reflectionService = new ReflectionService();
+    dataConnector = new dataConnectorTest();
     await runServer();
-  }, 10000);
+  });
 
   // Test case for configuration initialization
   test("should initialize with the given configuration", () => {
+    console.log("test1");
     const initialConfig = dataConnector.getConfig();
     expect(initialConfig).toEqual({
       API_URL: "http://localhost:2000",
@@ -55,115 +52,12 @@ describe("DataConnector", () => {
 
   // Test case for setting new configuration
   test("should update configuration", () => {
+    console.log("test2");
     dataConnector.setConfig({ API_URL: "http://localhost:31245" });
     expect(dataConnector.getConfig()).toHaveProperty(
       "API_URL",
       "http://localhost:31245"
     );
-  });
-
-  // Test case for reflection service - getting all properties
-  test("should get all properties using reflection", () => {
-    const properties = reflectionService.getAllProperties(dataConnector);
-    expect(properties).toContain("config");
-    expect(properties).toContain("endpoints");
-    expect(properties).toContain("defaultHeaders");
-  });
-
-  // Test case for reflection service - getting data properties
-  test("should get data properties using reflection", () => {
-    const dataProperties = reflectionService.getDataProperties(dataConnector);
-    expect(dataProperties).toHaveProperty("config");
-    expect(dataProperties).toHaveProperty("endpoints");
-    expect(dataProperties).toHaveProperty("defaultHeaders");
-  });
-
-  // Test case for reflection service - getting methods
-  test("should get methods using reflection", () => {
-    const methods = reflectionService.getMethods(dataConnector);
-    expect(methods).toHaveProperty("apiCall");
-    expect(methods).toHaveProperty("setConfig");
-    expect(methods).toHaveProperty("getConfig");
-  });
-
-  // Test case for reflection service - adding endpoint
-  test("should add endpoint using reflection", () => {
-    const newEndpoint = {
-      method: "GET",
-      url: "http://localhost:2000/new-endpoint",
-    };
-    reflectionService.addEndpoint(dataConnector, "new_endpoint", newEndpoint);
-    expect(dataConnector.endpoints).toHaveProperty("new_endpoint", newEndpoint);
-  });
-
-  // Test case for reflection service - editing endpoint
-  test("should edit endpoint using reflection", () => {
-    const updatedEndpoint = {
-      url: "http://localhost:2000/updated-endpoint",
-    };
-    reflectionService.editEndpoint(
-      dataConnector,
-      "new_endpoint",
-      updatedEndpoint
-    );
-    expect(dataConnector.endpoints.new_endpoint.url).toBe(
-      "http://localhost:2000/updated-endpoint"
-    );
-  });
-
-  // Test case for reflection service - getting endpoint metadata
-  test("should get endpoint metadata using reflection", () => {
-    const metadata = { description: "This is a new endpoint" };
-    reflectionService.addEndpoint(
-      dataConnector,
-      "metadata_endpoint",
-      { method: "GET", url: "http://localhost:2000/metadata-endpoint" },
-      metadata
-    );
-    const retrievedMetadata = reflectionService.getEndpointMetadata(
-      dataConnector,
-      "metadata_endpoint"
-    );
-    expect(retrievedMetadata).toEqual(metadata);
-  });
-
-  // Test case for reflection service - adding config property
-  test("should add config property using reflection", () => {
-    reflectionService.addConfigProperty(
-      dataConnector,
-      "newConfigProperty",
-      "newValue"
-    );
-    expect(dataConnector.config).toHaveProperty(
-      "newConfigProperty",
-      "newValue"
-    );
-  });
-
-  // Test case for reflection service - editing config property
-  test("should edit config property using reflection", () => {
-    reflectionService.editConfigProperty(
-      dataConnector,
-      "newConfigProperty",
-      "updatedValue"
-    );
-    expect(dataConnector.config.newConfigProperty).toBe("updatedValue");
-  });
-
-  // Test case for reflection service - getting config property metadata
-  test("should get config property metadata using reflection", () => {
-    const metadata = { description: "This is a new config property" };
-    reflectionService.addConfigProperty(
-      dataConnector,
-      "metadataConfigProperty",
-      "metadataValue",
-      metadata
-    );
-    const retrievedMetadata = reflectionService.getConfigPropertyMetadata(
-      dataConnector,
-      "metadataConfigProperty"
-    );
-    expect(retrievedMetadata).toEqual(metadata);
   });
 
   // Test case for create tasks
@@ -173,8 +67,7 @@ describe("DataConnector", () => {
       task: "Buy groceries",
       status: "pending",
     };
-    let task = await dataConnector.apiCall("create_task", taskData);
-    task = task.data;
+    const task = await dataConnector.apiCall("create_task", taskData);
     taskId = task._id;
     expect(task).toHaveProperty("date");
     expect(task).toHaveProperty("task", taskData.task);
@@ -184,7 +77,7 @@ describe("DataConnector", () => {
   // Test case for getting tasks
   test("should get tasks", async () => {
     const tasks = await dataConnector.apiCall("get_tasks");
-    expect(Array.isArray(tasks.data)).toBe(true);
+    expect(Array.isArray(tasks)).toBe(true);
   });
 
   // Test case for updating a task
@@ -196,9 +89,7 @@ describe("DataConnector", () => {
       { id: taskId }
     );
 
-    expect(updatedMessage.data).toEqual({
-      message: "Task updated successfully",
-    });
+    expect(updatedMessage).toEqual({ message: "Task updated successfully" });
   });
 
   // Test case for deleting a task
@@ -207,13 +98,10 @@ describe("DataConnector", () => {
       id: taskId,
     });
 
-    expect(deletedMessage.data).toEqual({
-      message: "Task deleted successfully",
-    });
+    expect(deletedMessage).toEqual({ message: "Task deleted successfully" });
   });
 
   afterAll(async () => {
-    console.log("after all");
     await closeServer();
   });
 });

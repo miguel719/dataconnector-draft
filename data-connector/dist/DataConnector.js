@@ -61,10 +61,9 @@ export class DataConnector {
                     body: body && endpointConfig.method !== "GET" ? JSON.stringify(body) : null,
                 });
                 const data = yield response.json();
-                const statusCode = response.status;
-                // Emit custom event
-                this.emitEvent(endpointKey + "_res", { data, url, statusCode });
-                return { data, url, statusCode };
+                // Emit events to connected web components
+                this.emitEvent(endpointKey + "_res", { data, url });
+                return data;
             }
             catch (error) {
                 this.errorHandler(error);
@@ -80,14 +79,12 @@ export class DataConnector {
     }
     // EMIT CUSTOM EVENTS
     emitEvent(eventName, detail) {
-        if (typeof CustomEvent === "function") {
-            const event = new CustomEvent(eventName, {
-                bubbles: true,
-                cancelable: true,
-                detail: detail,
-            });
-            document.dispatchEvent(event);
-        }
+        const event = new CustomEvent(eventName, {
+            bubbles: true,
+            cancelable: true,
+            detail: detail,
+        });
+        document.dispatchEvent(event);
     }
     // ERROR HANDLERS
     errorHandler(error) {
