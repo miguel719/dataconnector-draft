@@ -1,10 +1,10 @@
-interface EndpointConfig {
+export interface EndpointConfig {
   url: string;
   method: string;
   headers?: HeadersInit;
 }
 
-interface Config {
+export interface Config {
   [key: string]: any;
 }
 

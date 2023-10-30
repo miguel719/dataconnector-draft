@@ -15,7 +15,8 @@
     "fkill": "^8.1.1",
     "kill-port": "^2.0.1",
     "lit": "^3.0.0",
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.3",
